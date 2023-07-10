@@ -34,14 +34,22 @@ namespace ruteo
             this.Button1 = ((SAPbouiCOM.Button)(this.GetItem("Item_8").Specific));
             this.Button1.ClickBefore += new SAPbouiCOM._IButtonEvents_ClickBeforeEventHandler(this.Button1_ClickBefore);
             this.v_grilla = ((SAPbouiCOM.Grid)(this.GetItem("Item_7").Specific));
-            this.oMatrix = ((SAPbouiCOM.Matrix)(this.GetItem("0_U_G")).Specific);
+            this.oMatrix = ((SAPbouiCOM.Matrix)(this.GetItem("0_U_G").Specific));
             this.v_txtChofer = ((SAPbouiCOM.EditText)(this.GetItem("Item_1").Specific));
+            this.v_txtChofer.KeyDownAfter += new SAPbouiCOM._IEditTextEvents_KeyDownAfterEventHandler(this.v_txtChofer_KeyDownAfter);
             this.Button0 = ((SAPbouiCOM.Button)(this.GetItem("Item_0").Specific));
             this.Button0.ClickBefore += new SAPbouiCOM._IButtonEvents_ClickBeforeEventHandler(this.Button0_ClickBefore);
-            this.OnCustomInitialize();
+            this.Code = ((SAPbouiCOM.EditText)(this.GetItem("0_U_E").Specific));
+            this.EditText1 = ((SAPbouiCOM.EditText)(this.GetItem("Item_3").Specific));
+            this.EditText1.KeyDownAfter += new SAPbouiCOM._IEditTextEvents_KeyDownAfterEventHandler(this.EditText1_KeyDownAfter);
+            this.txtCliente = ((SAPbouiCOM.EditText)(this.GetItem("Item_1").Specific));
+            this.EditText2 = ((SAPbouiCOM.EditText)(this.GetItem("Item_4").Specific));
+            this.StaticText1 = ((SAPbouiCOM.StaticText)(this.GetItem("Item_5").Specific));
+            this.StaticText2 = ((SAPbouiCOM.StaticText)(this.GetItem("Item_6").Specific));
 
-            SAPbouiCOM.DataTable dt = oForm.DataSources.DataTables.Add("dt");
-            dt.Columns.Add("CHECK",SAPbouiCOM.BoFieldsType.ft_Text);
+            //inicializar la grilla
+            SAPbouiCOM.DataTable dt = this.oForm.DataSources.DataTables.Add("dt");
+            dt.Columns.Add("CHECK", SAPbouiCOM.BoFieldsType.ft_Text);
             dt.Columns.Add("Documento", SAPbouiCOM.BoFieldsType.ft_Text);
             dt.Columns.Add("Cliente", SAPbouiCOM.BoFieldsType.ft_Text);
             dt.Columns.Add("Vencimiento", SAPbouiCOM.BoFieldsType.ft_Date);
@@ -52,9 +60,25 @@ namespace ruteo
             dt.Columns.Add("Transportista", SAPbouiCOM.BoFieldsType.ft_Text);
             dt.Columns.Add("Vehiculo", SAPbouiCOM.BoFieldsType.ft_Text);
             dt.Columns.Add("Chofer", SAPbouiCOM.BoFieldsType.ft_Text);
-            v_grilla.DataTable = dt;
-            v_grilla.DataTable.Rows.Add();
-            v_grilla.Columns.Item(0).Type = SAPbouiCOM.BoGridColumnType.gct_CheckBox;
+            this.v_grilla.DataTable = dt;
+            this.v_grilla.DataTable.Rows.Add();
+            this.v_grilla.Columns.Item(0).Type = SAPbouiCOM.BoGridColumnType.gct_CheckBox;
+            //   this.btnReruteo = ((SAPbouiCOM.Button)(this.GetItem("Item_9").Specific));
+            //   this.btnReruteo.ClickAfter += new SAPbouiCOM._IButtonEvents_ClickAfterEventHandler(this.btnReruteo_ClickAfter);
+            this.oMatrix.Item.Visible = false;
+            this.StaticText3 = ((SAPbouiCOM.StaticText)(this.GetItem("Item_10").Specific));
+            this.txtmonto = ((SAPbouiCOM.StaticText)(this.GetItem("Item_11").Specific));
+            this.OnCustomInitialize();
+            //agarramos el ultimo codigo pra el ruteo
+            SAPbobsCOM.Recordset oCode;
+            oCode = (SAPbobsCOM.Recordset)_SBO.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset);
+            oCode.DoQuery("SELECT MAX(\"DocEntry\")+1 FROM \"@RUTEO\" ");
+            Code.Value = oCode.Fields.Item(0).Value.ToString();
+            txtmonto.Caption = "0";
+            EditText1.Item.Visible = false;
+            EditText2.Item.Visible = false;
+            StaticText1.Item.Visible = false;
+            StaticText2.Item.Visible = false;
 
         }
 
@@ -63,6 +87,8 @@ namespace ruteo
         /// </summary>
         public override void OnInitializeFormEvents()
         {
+            this.DataLoadAfter += new DataLoadAfterHandler(this.Form_DataLoadAfter);
+
         }
 
         #region DECLARACION DE VARIABLES
@@ -84,6 +110,11 @@ namespace ruteo
         private SAPbouiCOM.Button Button1;
         private SAPbouiCOM.Button Button2;
         private SAPbouiCOM.Button Button3;
+        private SAPbouiCOM.EditText Code;
+        private SAPbouiCOM.Button btnReruteo;
+        private SAPbouiCOM.EditText txtCliente;
+        private SAPbouiCOM.StaticText StaticText3;
+        private SAPbouiCOM.StaticText txtmonto;
         #endregion
 
 
@@ -174,6 +205,7 @@ namespace ruteo
                     source.SetValue("U_Num_interno", v_filaMatrix, interno);
                     source.SetValue("U_Parametro", v_filaMatrix, parametro);
                     oMatrix.LoadFromDataSource();
+                    
 
                     //cargar filas de la grilla
                     v_grilla.DataTable.SetValue("Documento", v_filaMatrix, documento);
@@ -308,20 +340,61 @@ namespace ruteo
             //throw new System.NotImplementedException();
             if (pVal.CharPressed == (char)9)
             {
-                //viualizamos la grilla y ocultamos la matrix
-                //oMatrix.Item.Visible = false;
-                //v_grilla.Item.Visible = true;   
-                //v_Consulta = "SELECT null as \"CHECK\",T0.\"DocNum\" as \"Documento\",T0.\"CardName\" as \"Cliente\", T0.\"DocDueDate\" as \"Vencimiento\",T1.\"SlpName\" as \"Empleado de venta\", T0.\"DocTotal\" as \"Total documento\", T0.\"DocEntry\" as \"Numero interno\" , " +
-                //                 "case when MIN(T3.\"WhsCode\") = 'ITG-HAM' THEN 'Hamburguesas'  when  MIN(T3.\"WhsCode\") = 'ITG-EMB' THEN 'Embutidos' when MIN(T3.\"WhsCode\") = 'ITG-PYP' THEN 'Papas y Pizas' ELSE 'Alimentos Secos' END AS Parametro,'' as \"Transportista\",'' as \"Vehiculo\",'' as \"Chofer\" " +
-                //                 "FROM ORDR T0 " +
-                //                 "JOIN \"OSLP\" T1 on  T0.\"SlpCode\"=T1.\"SlpCode\" " +
-                //                 "inner join \"NNM1\" T2  ON T0.\"Series\" = T2.\"Series\" " +
-                //                 "INNER JOIN \"RDR1\" T3 ON T0.\"DocEntry\" = T3.\"DocEntry\" " +
-                //                 "WHERE T0.\"DocDueDate\" = '20230708' and T0.\"CardName\"='CADENA REAL S.A.-SUC. VILLA MORRA' and  T2.\"SeriesName\" LIKE '017%' AND T3.\"WhsCode\" in ('ITG-HAM', 'ITG-EMB', 'ITG-SEC', 'ITG-PYP') AND  T0.\"CANCELED\" = 'N' " +
-                //                 "GROUP BY T0.\"DocNum\",T0.\"CardName\", T0.\"DocDueDate\", T0.\"U_Vehiculo\",T0.\"U_Chofer\",T1.\"SlpName\",T0.\"DocTotal\", T0.\"DocEntry\" limit 2 ";
-                //v_grilla.DataTable.ExecuteQuery(v_Consulta);
-                //v_grilla.Columns.Item(0).Type = SAPbouiCOM.BoGridColumnType.gct_CheckBox;
-                
+                try
+                {
+                    //agarramos el codigo primario
+                    string v_code = Code.Value;
+                    //consultamos a la base
+                    SAPbobsCOM.Recordset oConsulta2;
+                    oConsulta2 = (SAPbobsCOM.Recordset)_SBO.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset);
+                    oConsulta2.DoQuery("SELECT \"U_Documento\",\"U_Cliente\",\"U_Vencimiento\",\"U_Emp_venta\",\"U_Total\",\"U_Num_interno\",\"U_Parametro\",\"U_Transportista\",\"U_Vehiculo\",\"U_Chofer\" FROM \"@RUTEODET\" WHERE \"Code\"='" + v_code + "' ");
+                    //cargamos la grilla
+                    int v_fila = 0;
+                    int v_filacolor = 1;
+
+                    while (!oConsulta2.EoF)
+                    {
+                        string documento = oConsulta2.Fields.Item(0).Value.ToString();
+                        string cliente = oConsulta2.Fields.Item(1).Value.ToString();
+                        string vencimiento = oConsulta2.Fields.Item(2).Value.ToString();
+                        DateTime venci = DateTime.Parse(vencimiento);
+                        string vencimiento_V = venci.ToString("yyyyMMdd");
+                        string empleado_venta = oConsulta2.Fields.Item(3).Value.ToString();
+                        string total = oConsulta2.Fields.Item(4).Value.ToString();
+                        string interno = oConsulta2.Fields.Item(5).Value.ToString();
+                        string parametro = oConsulta2.Fields.Item(6).Value.ToString();
+                        string trans = oConsulta2.Fields.Item(7).Value.ToString();
+                        string chapa = oConsulta2.Fields.Item(8).Value.ToString();
+                        string chofer = oConsulta2.Fields.Item(9).Value.ToString();
+
+                        //cargar filas de la grilla
+                        v_grilla.DataTable.SetValue("Documento", v_fila, documento);
+                        v_grilla.DataTable.SetValue("Cliente", v_fila, cliente);
+                        v_grilla.DataTable.SetValue("Vencimiento", v_fila, vencimiento_V);
+                        v_grilla.DataTable.SetValue("Empleado de venta", v_fila, empleado_venta);
+                        v_grilla.DataTable.SetValue("Total documento", v_fila, total);
+                        v_grilla.DataTable.SetValue("Numero interno", v_fila, interno);
+                        v_grilla.DataTable.SetValue("Parametro", v_fila, parametro);
+                        v_grilla.DataTable.SetValue("Transportista", v_fila, trans);
+                        v_grilla.DataTable.SetValue("Vehiculo", v_fila, chapa);
+                        v_grilla.DataTable.SetValue("Chofer", v_fila, chofer);
+                        if (!string.IsNullOrEmpty(trans))
+                        {
+                            int color = Color.LightGreen.ToArgb();
+                            v_grilla.CommonSetting.SetRowBackColor(v_filacolor, color);
+                        }
+                        v_grilla.DataTable.Rows.Add();
+
+                        v_fila++;
+                        v_filacolor++;
+                        oConsulta2.MoveNext();
+                    }
+                }
+                catch (Exception e)
+                {
+
+                }
+
             }
 
         }
@@ -355,7 +428,9 @@ namespace ruteo
             int v_rowsGrid = v_grilla.Rows.Count;
             int v_fila = 0;
             int v_filaColor = 1;
-           
+            SAPbobsCOM.Documents oOrden;
+            oOrden = (SAPbobsCOM.Documents)_SBO.GetBusinessObject(SAPbobsCOM.BoObjectTypes.oOrders);
+
             while (v_fila < v_rowsGrid)
             {
                 string v_check = v_grilla.DataTable.GetValue("CHECK", v_fila).ToString();
@@ -368,7 +443,30 @@ namespace ruteo
                     v_grilla.DataTable.SetValue("CHECK", v_fila, "");
                     int color = Color.LightGreen.ToArgb();
                     v_grilla.CommonSetting.SetRowBackColor(v_filaColor, color);
+                    //grabar datos en el pedido
+                    string pedido = v_grilla.DataTable.GetValue("Numero interno", v_fila).ToString();
+                    try
+                    {                       
+                        int v_pedido = int.Parse(pedido);
+                        //string v_numPedido = oBusqueda.Fields.Item(4).Value.ToString();
+                        if (oOrden.GetByKey(v_pedido))
+                        {
+                            oOrden.UserFields.Fields.Item("U_Trans").Value = v_transp;
+                            oOrden.UserFields.Fields.Item("U_Vehiculo").Value = v_chapa;
+                            oOrden.UserFields.Fields.Item("U_Chofer").Value = v_chofer;
+                            int up = oOrden.Update();
+                            if (up != 0)
+                            {
+                                int color2 = Color.Blue.ToArgb();
+                                v_grilla.CommonSetting.SetRowBackColor(v_filaColor, color2);
+                            }
 
+                        }
+                    }
+                    catch
+                    {
+
+                    }
                     //cargar chofer a los pedidos - matrix
                     ((SAPbouiCOM.EditText)oMatrix.Columns.Item(8).Cells.Item(v_filaColor).Specific).Value = v_transp;
                     ((SAPbouiCOM.EditText)oMatrix.Columns.Item(9).Cells.Item(v_filaColor).Specific).Value = v_chapa;
@@ -390,40 +488,63 @@ namespace ruteo
         //funcion para actualizar los pedidos
         private void rutearPedidos(string pedido, string trans, string chapa, string chofer)
         {
-            string v_newKey =  _SBO.GetNewObjectKey();
-            string v_ListError = "No se actualizaron los siguientes pedidos: ";
+            //string v_newKey =  _SBO.GetNewObjectKey();
+            string v_ListError = "No se actualizo el siguiente pedido: ";
             
             SAPbobsCOM.Documents oOrden;
             oOrden = (SAPbobsCOM.Documents)_SBO.GetBusinessObject(SAPbobsCOM.BoObjectTypes.oOrders);
 
-            SAPbobsCOM.Recordset oBusqueda;
-            oBusqueda = (SAPbobsCOM.Recordset)_SBO.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset);
-            oBusqueda.DoQuery("SELECT \"U_Num_Interno\",\"U_Transportista\",\"U_Vehiculo\",\"U_Chofer\",\"U_Documento\" FROM \"@RUTEODET\" WHERE \"Code\"='"+v_newKey+"' ");
-            while (!oBusqueda.EoF)
+            int v_pedido = int.Parse(pedido);
+            //string v_numPedido = oBusqueda.Fields.Item(4).Value.ToString();
+            if (oOrden.GetByKey(v_pedido))
             {
-                int v_pedido = int.Parse(oBusqueda.Fields.Item(0).Value.ToString());
-                trans = oBusqueda.Fields.Item(1).Value.ToString();
-                chapa = oBusqueda.Fields.Item(2).Value.ToString();
-                chofer = oBusqueda.Fields.Item(3).Value.ToString();
-                string v_numPedido = oBusqueda.Fields.Item(4).Value.ToString();
-                if (oOrden.GetByKey(v_pedido))
+                oOrden.UserFields.Fields.Item("U_Trans").Value = trans;
+                oOrden.UserFields.Fields.Item("U_Vehiculo").Value = chapa;
+                oOrden.UserFields.Fields.Item("U_Chofer").Value = chofer;
+                int up = oOrden.Update();
+                if(up != 0)
                 {
-                    oOrden.UserFields.Fields.Item("U_Trans").Value = trans;
-                    oOrden.UserFields.Fields.Item("U_Vehiculo").Value = chapa;
-                    oOrden.UserFields.Fields.Item("U_Chofer").Value = chofer;
-                    int up = oOrden.Update();
-                    if(up != 0)
-                    {
-                        v_ListError = v_ListError + v_numPedido + ", ";
-                    }
-
+                    v_ListError = v_ListError + pedido;
                 }
-            }
+
+            }      
            
         }
 
+        private void Form_DataLoadAfter(ref SAPbouiCOM.BusinessObjectInfo pVal)
+        {
+           
+            
+
+        }
+
+      
+
        
 
-        
+        private void v_txtChofer_KeyDownAfter(object sboObject, SAPbouiCOM.SBOItemEventArg pVal)
+        {
+            //throw new System.NotImplementedException();
+            if (pVal.CharPressed == (char)9)
+            {
+                string v_clinte = txtCliente.Value;
+                decimal v_monto = 0;
+                int canRow = v_grilla.Rows.Count;
+                int fila = 1;
+                int filagrilla = 0;
+                while (fila < canRow)
+                {
+                    string G_cliente = v_grilla.DataTable.GetValue("Chofer", filagrilla).ToString();
+                    if (G_cliente.Equals(v_clinte))
+                    {
+                        string G_monto = v_grilla.DataTable.GetValue("Total documento", filagrilla).ToString();
+                        v_monto = v_monto + decimal.Parse(G_monto);
+                        EditText1.Value = v_monto.ToString();
+                    }
+                    fila++;
+                    filagrilla++;
+                }
+            }
+        }
     }
 }
