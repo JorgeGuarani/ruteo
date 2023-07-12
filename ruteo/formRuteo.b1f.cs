@@ -98,7 +98,7 @@ namespace ruteo
             //    this.lblName.Item.Visible = false;
             //    this.txtName.Item.Visible = false;
             this.btnCombo = ((SAPbouiCOM.ButtonCombo)(this.GetItem("Item_13").Specific));
-            this.btnCombo.PressedAfter += new SAPbouiCOM._IButtonComboEvents_PressedAfterEventHandler(this.btnCombo_PressedAfter);   853494       
+            this.btnCombo.PressedAfter += new SAPbouiCOM._IButtonComboEvents_PressedAfterEventHandler(this.btnCombo_PressedAfter);        
             this.OnCustomInitialize();
 
         }
