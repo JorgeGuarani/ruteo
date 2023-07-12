@@ -80,11 +80,11 @@ namespace ruteo
             //    SAPbobsCOM.Recordset oCode;
             //    oCode = ((SAPbobsCOM.Recordset)(this._SBO.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)));
             //    oCode.DoQuery("SELECT MAX(\"DocEntry\")+1 FROM \"@RUTEO\" ");
+            //    this.txtmonto.Item.ForeColor = colortxt;
             //    this.Code.Value = oCode.Fields.Item(0).Value.ToString();
             //    this.txtmonto.Caption = "0";
             //    this.txtmonto.Item.FontSize = 15;
             //    int colortxt = System.Drawing.Color.Green.ToArgb();
-            //    this.txtmonto.Item.ForeColor = colortxt;
             //    this.EditText1.Item.Visible = false;
             //    this.EditText2.Item.Visible = false;
             //    this.StaticText1.Item.Visible = false;
@@ -98,8 +98,7 @@ namespace ruteo
             //    this.lblName.Item.Visible = false;
             //    this.txtName.Item.Visible = false;
             this.btnCombo = ((SAPbouiCOM.ButtonCombo)(this.GetItem("Item_13").Specific));
-            this.btnCombo.PressedAfter += new SAPbouiCOM._IButtonComboEvents_PressedAfterEventHandler(this.btnCombo_PressedAfter);
-            this.btnCombo.ClickAfter += new SAPbouiCOM._IButtonComboEvents_ClickAfterEventHandler(this.btnCombo_ClickAfter);
+            this.btnCombo.PressedAfter += new SAPbouiCOM._IButtonComboEvents_PressedAfterEventHandler(this.btnCombo_PressedAfter);   853494       
             this.OnCustomInitialize();
 
         }
@@ -208,10 +207,7 @@ namespace ruteo
             this.btnCombo.ValidValues.Add("Excel", "Excel");
             this.Button3.Item.Enabled = false;
         }
-
-      
-
-
+    
         //funcion para cargar la grilla
         private void v_fechaEntrega_KeyDownAfter(object sboObject, SAPbouiCOM.SBOItemEventArg pVal)
         {
@@ -257,7 +253,7 @@ namespace ruteo
                     v_Consulta = "SELECT T0.\"DocNum\",T0.\"CardName\", T0.\"DocDueDate\", T0.\"U_Vehiculo\",T0.\"U_Chofer\",T1.\"SlpName\", T0.\"DocTotal\", T0.\"DocEntry\",'' " +
                                  "FROM ORDR T0 " +
                                  "JOIN \"OSLP\" T1 on  T0.\"SlpCode\"=T1.\"SlpCode\" " +
-                                 "WHERE T0.\"DocDueDate\" = '" + v_fecha + "' and  T0.\"Series\" = '525'  AND  T0.\"CANCELED\" = 'N' AND T0.\"CardCode\"='CI0000559' " +
+                                 "WHERE T0.\"DocDueDate\" = '" + v_fecha + "' and  T0.\"Series\" = '525'  AND  T0.\"CANCELED\" = 'Y' AND T0.\"CardCode\"='CI0000559' " +
                                  "ORDER BY T0.\"CardName\", T0.\"U_Chofer\" ";
                 }
                 //consultamos a la base de datos
@@ -748,15 +744,9 @@ namespace ruteo
                 string v_documento = v_grilla.DataTable.GetValue("Numero interno", pVal.Row).ToString();
                 SAPbouiCOM.Framework.Application.SBO_Application.OpenForm(SAPbouiCOM.BoFormObjectEnum.fo_Order,"",v_documento);
             }
-        }
+        }     
 
-        private void btnCombo_ClickAfter(object sboObject, SAPbouiCOM.SBOItemEventArg pVal)
-        {
-            //throw new System.NotImplementedException();
-            
-
-        }
-
+        //funcion de combo d eboton
         private void btnCombo_PressedAfter(object sboObject, SAPbouiCOM.SBOItemEventArg pVal)
         {
             if (btnCombo.Caption.Equals("Rutear"))
@@ -786,13 +776,16 @@ namespace ruteo
                             oOrden.UserFields.Fields.Item("U_Vehiculo").Value = v_chapa;
                             oOrden.UserFields.Fields.Item("U_Chofer").Value = v_chofer;
                             oOrden.UserFields.Fields.Item("U_par").Value = v_parametro;
-                            oOrden.UserFields.Fields.Item("U_LEYENDA").Value = "2";
+                            if (!v_parametro.Equals("Alimentos Secos"))
+                            {
+                                oOrden.UserFields.Fields.Item("U_LEYENDA").Value = "2";
+                            }                            
                             oOrden.NumAtCard = "ITAUGUA";
                             int up = oOrden.Update();
                             if (up != 0)
                             {
 
-                                int color2 = Color.Blue.ToArgb();
+                                int color2 = Color.LightBlue.ToArgb();
                                 v_grilla.CommonSetting.SetRowBackColor(filacolor, color2);
                             }
                             else
@@ -806,7 +799,7 @@ namespace ruteo
                     }
                     catch
                     {
-                        int color2 = Color.Blue.ToArgb();
+                        int color2 = Color.LightBlue.ToArgb();
                         v_grilla.CommonSetting.SetRowBackColor(filacolor, color2);
                     }
                     fila++;
