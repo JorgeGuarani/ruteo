@@ -201,11 +201,12 @@ namespace ruteo
             this.lblName.Item.Visible = false;
             this.txtName.Item.Visible = false;
             this.oMatrix.Item.Visible = true;
-            this.Button0.Item.Visible = false;
+            this.Button0.Item.Visible = true;
             this.v_grilla.Item.Visible = false;
             this.btnCombo.ValidValues.Add("Rutear", "Rutear");
             this.btnCombo.ValidValues.Add("Excel", "Excel");
             this.Button3.Item.Enabled = false;
+            this.btnCombo.Item.Visible = false;
         }
     
         //funcion para cargar la grilla
@@ -489,7 +490,8 @@ namespace ruteo
         private void Button1_ClickBefore(object sboObject, SAPbouiCOM.SBOItemEventArg pVal, out bool BubbleEvent)
         {
             BubbleEvent = true;
-            this.Button3.Item.Enabled = false;
+            this.Button3.Item.Enabled = true;
+            this.BtnCancelar.Item.Enabled = false;
             string v_chofer = v_txtChofer.Value.ToString();
             string v_transp = null;
             string v_chapa = null;
@@ -515,8 +517,8 @@ namespace ruteo
             int v_rowsGrid = v_grilla.Rows.Count;
             int v_fila = 0;
             int v_filaColor = 1;
-            //SAPbobsCOM.Documents oOrden;
-            //oOrden = (SAPbobsCOM.Documents)_SBO.GetBusinessObject(SAPbobsCOM.BoObjectTypes.oOrders);
+            SAPbobsCOM.Documents oOrden;
+            oOrden = (SAPbobsCOM.Documents)_SBO.GetBusinessObject(SAPbobsCOM.BoObjectTypes.oOrders);
 
             while (v_fila < v_rowsGrid)
             {
@@ -528,42 +530,47 @@ namespace ruteo
                     v_grilla.DataTable.SetValue("Vehiculo", v_fila, v_chapa);
                     v_grilla.DataTable.SetValue("Chofer", v_fila, v_chofer);
                     v_grilla.DataTable.SetValue("CHECK", v_fila, "");
-                    int colorGrilla = Color.LightGray.ToArgb();
-                    v_grilla.CommonSetting.SetRowBackColor(v_filaColor, colorGrilla);
+                    //int colorGrilla = Color.LightGray.ToArgb();
+                    //v_grilla.CommonSetting.SetRowBackColor(v_filaColor, colorGrilla);
                     //grabar datos en el pedido
                     string pedido = v_grilla.DataTable.GetValue("Numero interno", v_fila).ToString();
                     string v_parametro = v_grilla.DataTable.GetValue("Parametro", v_fila).ToString();
-                    //try
-                    //{
-                    //    int v_pedido = int.Parse(pedido);
-                    //    //string v_numPedido = oBusqueda.Fields.Item(4).Value.ToString();
-                    //    if (oOrden.GetByKey(v_pedido))
-                    //    {
-                    //        oOrden.UserFields.Fields.Item("U_Trans").Value = v_transp;
-                    //        oOrden.UserFields.Fields.Item("U_Vehiculo").Value = v_chapa;
-                    //        oOrden.UserFields.Fields.Item("U_Chofer").Value = v_chofer;
-                    //        oOrden.UserFields.Fields.Item("U_par").Value = v_parametro;
-                    //        int up = oOrden.Update();
-                    //        if (up != 0)
-                    //        {
+                    try
+                    {
+                        int v_pedido = int.Parse(pedido);
+                        //string v_numPedido = oBusqueda.Fields.Item(4).Value.ToString();
+                        if (oOrden.GetByKey(v_pedido))
+                        {
+                            oOrden.UserFields.Fields.Item("U_Trans").Value = v_transp;
+                            oOrden.UserFields.Fields.Item("U_Vehiculo").Value = v_chapa;
+                            oOrden.UserFields.Fields.Item("U_Chofer").Value = v_chofer;
+                            oOrden.UserFields.Fields.Item("U_par").Value = v_parametro;
+                            if (!v_parametro.Equals("Alimentos Secos"))
+                            {
+                                oOrden.UserFields.Fields.Item("U_LEYENDA").Value = "2";
+                            }
+                            oOrden.NumAtCard = "ITAUGUA";
+                            int up = oOrden.Update();
+                            if (up != 0)
+                            {
 
-                    //            int color2 = Color.Blue.ToArgb();
-                    //            v_grilla.CommonSetting.SetRowBackColor(v_filaColor, color2);
-                    //        }
-                    //        else
-                    //        {
+                                int color2 = Color.Blue.ToArgb();
+                                v_grilla.CommonSetting.SetRowBackColor(v_filaColor, color2);
+                            }
+                            else
+                            {
 
-                    //            int color = Color.LightGreen.ToArgb();
-                    //            v_grilla.CommonSetting.SetRowBackColor(v_filaColor, color);
-                    //        }
+                                int color = Color.LightGreen.ToArgb();
+                                v_grilla.CommonSetting.SetRowBackColor(v_filaColor, color);
+                            }
 
-                    //    }
-                    //}
-                    //catch
-                    //{
-                    //    int color2 = Color.Blue.ToArgb();
-                    //    v_grilla.CommonSetting.SetRowBackColor(v_filaColor, color2);
-                    //}
+                        }
+                    }
+                    catch
+                    {
+                        int color2 = Color.Blue.ToArgb();
+                        v_grilla.CommonSetting.SetRowBackColor(v_filaColor, color2);
+                    }
                     //cargar chofer a los pedidos - matrix
                     ((SAPbouiCOM.EditText)oMatrix.Columns.Item(8).Cells.Item(v_filaColor).Specific).Value = v_transp;
                     ((SAPbouiCOM.EditText)oMatrix.Columns.Item(9).Cells.Item(v_filaColor).Specific).Value = v_chapa;
@@ -746,65 +753,65 @@ namespace ruteo
             }
         }     
 
-        //funcion de combo d eboton
+        //funcion de combo de boton
         private void btnCombo_PressedAfter(object sboObject, SAPbouiCOM.SBOItemEventArg pVal)
         {
             if (btnCombo.Caption.Equals("Rutear"))
             {
-                this.Button3.Item.Enabled = true;
-                //instanciamos el objeto
-                SAPbobsCOM.Documents oOrden;
-                oOrden = (SAPbobsCOM.Documents)_SBO.GetBusinessObject(SAPbobsCOM.BoObjectTypes.oOrders);
-                //contamos la cantidad de lineas a recorrer
-                int cantGrilla = v_grilla.Rows.Count-1;
-                int fila = 0;
-                int filacolor = 1;
-                while (fila < cantGrilla)
-                {
-                    string pedido = v_grilla.DataTable.GetValue("Numero interno", fila).ToString();
-                    string v_transp = v_grilla.DataTable.GetValue("Transportista", fila).ToString();
-                    string v_chapa = v_grilla.DataTable.GetValue("Vehiculo", fila).ToString();
-                    string v_chofer = v_grilla.DataTable.GetValue("Chofer", fila).ToString();
-                    string v_parametro = v_grilla.DataTable.GetValue("Parametro", fila).ToString();
-                    try
-                    {
-                        int v_pedido = int.Parse(pedido);
-                        //string v_numPedido = oBusqueda.Fields.Item(4).Value.ToString();
-                        if (oOrden.GetByKey(v_pedido))
-                        {
-                            oOrden.UserFields.Fields.Item("U_Trans").Value = v_transp;
-                            oOrden.UserFields.Fields.Item("U_Vehiculo").Value = v_chapa;
-                            oOrden.UserFields.Fields.Item("U_Chofer").Value = v_chofer;
-                            oOrden.UserFields.Fields.Item("U_par").Value = v_parametro;
-                            if (!v_parametro.Equals("Alimentos Secos"))
-                            {
-                                oOrden.UserFields.Fields.Item("U_LEYENDA").Value = "2";
-                            }                            
-                            oOrden.NumAtCard = "ITAUGUA";
-                            int up = oOrden.Update();
-                            if (up != 0)
-                            {
+                //this.Button3.Item.Enabled = true;
+                ////instanciamos el objeto
+                //SAPbobsCOM.Documents oOrden;
+                //oOrden = (SAPbobsCOM.Documents)_SBO.GetBusinessObject(SAPbobsCOM.BoObjectTypes.oOrders);
+                ////contamos la cantidad de lineas a recorrer
+                //int cantGrilla = v_grilla.Rows.Count-1;
+                //int fila = 0;
+                //int filacolor = 1;
+                //while (fila < cantGrilla)
+                //{
+                //    string pedido = v_grilla.DataTable.GetValue("Numero interno", fila).ToString();
+                //    string v_transp = v_grilla.DataTable.GetValue("Transportista", fila).ToString();
+                //    string v_chapa = v_grilla.DataTable.GetValue("Vehiculo", fila).ToString();
+                //    string v_chofer = v_grilla.DataTable.GetValue("Chofer", fila).ToString();
+                //    string v_parametro = v_grilla.DataTable.GetValue("Parametro", fila).ToString();
+                //    try
+                //    {
+                //        int v_pedido = int.Parse(pedido);
+                //        //string v_numPedido = oBusqueda.Fields.Item(4).Value.ToString();
+                //        if (oOrden.GetByKey(v_pedido))
+                //        {
+                //            oOrden.UserFields.Fields.Item("U_Trans").Value = v_transp;
+                //            oOrden.UserFields.Fields.Item("U_Vehiculo").Value = v_chapa;
+                //            oOrden.UserFields.Fields.Item("U_Chofer").Value = v_chofer;
+                //            oOrden.UserFields.Fields.Item("U_par").Value = v_parametro;
+                //            if (!v_parametro.Equals("Alimentos Secos"))
+                //            {
+                //                oOrden.UserFields.Fields.Item("U_LEYENDA").Value = "2";
+                //            }                            
+                //            oOrden.NumAtCard = "ITAUGUA";
+                //            int up = oOrden.Update();
+                //            if (up != 0)
+                //            {
 
-                                int color2 = Color.LightBlue.ToArgb();
-                                v_grilla.CommonSetting.SetRowBackColor(filacolor, color2);
-                            }
-                            else
-                            {
+                //                int color2 = Color.LightBlue.ToArgb();
+                //                v_grilla.CommonSetting.SetRowBackColor(filacolor, color2);
+                //            }
+                //            else
+                //            {
 
-                                int color = Color.LightGreen.ToArgb();
-                                v_grilla.CommonSetting.SetRowBackColor(filacolor, color);
-                            }
+                //                int color = Color.LightGreen.ToArgb();
+                //                v_grilla.CommonSetting.SetRowBackColor(filacolor, color);
+                //            }
 
-                        }
-                    }
-                    catch
-                    {
-                        int color2 = Color.LightBlue.ToArgb();
-                        v_grilla.CommonSetting.SetRowBackColor(filacolor, color2);
-                    }
-                    fila++;
-                    filacolor++;
-                }
+                //        }
+                //    }
+                //    catch
+                //    {
+                //        int color2 = Color.LightBlue.ToArgb();
+                //        v_grilla.CommonSetting.SetRowBackColor(filacolor, color2);
+                //    }
+                //    fila++;
+                //    filacolor++;
+                //}
             }
             if (btnCombo.Caption.Equals("Excel"))
             {
