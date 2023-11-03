@@ -238,7 +238,7 @@ namespace ruteo
                                  "JOIN \"OSLP\" T1 on  T0.\"SlpCode\"=T1.\"SlpCode\" "+
                                  "inner join \"NNM1\" T2  ON T0.\"Series\" = T2.\"Series\" "+
                                  "INNER JOIN \"RDR1\" T3 ON T0.\"DocEntry\" = T3.\"DocEntry\" "+
-                                 "WHERE T0.\"DocDueDate\" = '"+ v_fecha + "' and  T2.\"SeriesName\" LIKE '017%' AND T3.\"WhsCode\" in ('ITG-HAM', 'ITG-EMB', 'ITG-SEC', 'ITG-PYP') AND  T0.\"CANCELED\" = 'N' "+
+                                 "WHERE T0.\"DocDueDate\" = '"+ v_fecha + "' and  (T2.\"SeriesName\" LIKE '017%' OR  T2.\"SeriesName\" LIKE 'PRIMARIO%') AND T3.\"WhsCode\" in ('ITG-HAM', 'ITG-EMB', 'ITG-SEC', 'ITG-PYP') AND  T0.\"CANCELED\" = 'N' " +
                                  "GROUP BY T0.\"DocNum\",T0.\"CardName\", T0.\"DocDueDate\", T0.\"U_Vehiculo\",T0.\"U_Chofer\",T1.\"SlpName\",T0.\"DocTotal\", T0.\"DocEntry\" ";
                 }
                 if (v_tipoText.Equals("CDE"))
